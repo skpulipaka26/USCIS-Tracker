@@ -18,7 +18,12 @@ const getStatus = async () => {
                 { headers: { Cookie } });
         });
         const responses = await Promise.all(requests);
-        const caseStatus = responses.map(res => res.data.data);
+        const caseStatus = responses.map(res => {
+            return {
+                ...res.data.data,
+                time: new Date().toLocaleString(),
+            }
+        });
         const newHeader = responses[0].headers['set-cookie'];
         fs.writeFileSync(cookieFile, `${newHeader}`);
         return caseStatus;
