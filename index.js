@@ -29,7 +29,7 @@ const getStatus = async () => {
         const caseStatus = responses.map(res => {
             return {
                 ...res.data.data,
-                time: new Date().toString(),
+                time: new Date(),
             }
         });
         const newHeader = responses[0].headers['set-cookie'];
