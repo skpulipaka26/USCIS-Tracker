@@ -21,7 +21,7 @@ const getStatus = async () => {
         const caseStatus = responses.map(res => {
             return {
                 ...res.data.data,
-                time: new Date().toLocaleString(),
+                time: new Date().toString(),
             }
         });
         const newHeader = responses[0].headers['set-cookie'];
