@@ -4,6 +4,13 @@ const cron = require('node-cron');
 
 const axios = require('axios').default;
 
+const io = require('socket.io-client');
+const socket = io('https://signalling-server-psk.herokuapp.com');
+
+socket.emit('request', { hello: 'yellow' });
+
+socket.on('request', console.log)
+
 const cookieFile = path.join(__dirname, 'cookie.txt');
 const Cookie = fs.readFileSync(cookieFile, 'utf8');
 
