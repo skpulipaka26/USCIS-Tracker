@@ -72,16 +72,16 @@ cron.schedule('0 */5 * * * *', getAllStatus);
 socket.on('request', msg => {
     const query = msg.query;
     switch (query) {
-        case REQUESTS.GET_STATUS: {
+        case REQUESTS.GET_STATUS:
             const status = fs.readFileSync(statusFile, 'utf8');
             socket.emit('response', {
                 query,
                 data: JSON.parse(status),
-            })
-        }
-        case REQUESTS.GET_STATUS_LATEST: {
+            });
+            break;
+        case REQUESTS.GET_STATUS_LATEST:
             getAllStatus();
-        }
+            break;
         default:
             break;
     }
