@@ -7,20 +7,20 @@ const axios = require('axios').default;
 const io = require('socket.io-client');
 const socket = io('https://signalling-server-psk.herokuapp.com');
 
-socket.emit('request', { hello: 'yellow' });
-
-socket.on('request', console.log)
 
 const cookieFile = path.join(__dirname, 'cookie.txt');
-const Cookie = fs.readFileSync(cookieFile, 'utf8');
-
 const statusFile = path.join(__dirname, 'status.json');
 
-const interestedCases = ['IOE0913005289', 'IOE0913005290', 'IOE0913005291', 'IOE0913005292'];
+const Cookie = fs.readFileSync(cookieFile, 'utf8');
+
+const REQUESTS = {
+    GET_STATUS: 'GET_STATUS'
+};
+const INTERESTED_CASES = ['IOE0913005289', 'IOE0913005290', 'IOE0913005291', 'IOE0913005292'];
 
 const getStatus = async () => {
     try {
-        const requests = interestedCases.map(caseNumber => {
+        const requests = INTERESTED_CASES.map(caseNumber => {
             return axios.get(`https://my.uscis.gov/account/case-service/api/case_status/${caseNumber}`,
                 { headers: { Cookie } });
         });
@@ -40,16 +40,45 @@ const getStatus = async () => {
 }
 
 
+const getSummary = (status) => {
+    try {
+        return status.reduce((a, b) => { 
+            return `${a}\n${b.formType} - ${b.statusTitle}`
+        }, '');
+    } catch (error) {
+        return 'Error generating summary';
+    }
+}
+
 const getAllStatus = () => {
     getStatus().
         then(status => {
-            console.log('status fetched');
+            console.log(getSummary(status));
+            socket.emit('response', {
+                query: REQUESTS.GET_STATUS,
+                data: JSON.parse(JSON.stringify(status)),
+            });
             fs.writeFileSync(statusFile, JSON.stringify(status, null, '\t'));
         })
-        .catch(err => console.err(err));
+        .catch(err => console.log(err));
 }
 
 getAllStatus();
 
 cron.schedule('0 */5 * * * *', getAllStatus);
+
+socket.on('request', msg => {
+    const query = msg.query;
+    switch (query) {
+        case REQUESTS.GET_STATUS: {
+            const status = fs.readFileSync(statusFile, 'utf8');
+            socket.emit('response', {
+                query,
+                data: JSON.parse(status),
+            })
+        }
+        default:
+            break;
+    }
+})
 
