@@ -14,7 +14,8 @@ const statusFile = path.join(__dirname, 'status.json');
 const Cookie = fs.readFileSync(cookieFile, 'utf8');
 
 const REQUESTS = {
-    GET_STATUS: 'GET_STATUS'
+    GET_STATUS: 'GET_STATUS',
+    GET_STATUS_LATEST: 'GET_STATUS_LATEST',
 };
 const INTERESTED_CASES = ['IOE0913005289', 'IOE0913005290', 'IOE0913005291', 'IOE0913005292'];
 
@@ -77,6 +78,9 @@ socket.on('request', msg => {
                 query,
                 data: JSON.parse(status),
             })
+        }
+        case REQUESTS.GET_STATUS_LATEST: {
+            getAllStatus();
         }
         default:
             break;
