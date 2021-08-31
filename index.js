@@ -42,7 +42,7 @@ const getStatus = async () => {
 
 const getSummary = (status) => {
     try {
-        return status.reduce((a, b) => { 
+        return status.reduce((a, b) => {
             return `${a}\n${b.formType} - ${b.statusTitle}`
         }, '');
     } catch (error) {
@@ -53,7 +53,8 @@ const getSummary = (status) => {
 const getAllStatus = () => {
     getStatus().
         then(status => {
-            console.log(getSummary(status));
+            console.log(`${getSummary(status)}\n-------------------------------------------------------`
+            );
             socket.emit('response', {
                 query: REQUESTS.GET_STATUS,
                 data: JSON.parse(JSON.stringify(status)),
