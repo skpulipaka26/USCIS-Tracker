@@ -32,7 +32,7 @@ const getAllStatus = () => {
     getStatus().
         then(status => {
             console.log('status fetched');
-            fs.writeFileSync(statusFile, JSON.stringify(status));
+            fs.writeFileSync(statusFile, JSON.stringify(status, null, '\t'));
         })
         .catch(err => console.err(err));
 }
