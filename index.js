@@ -1,18 +1,48 @@
+require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const cron = require('node-cron');
 const nodemailer = require('nodemailer');
 const axios = require('axios').default;
 const io = require('socket.io-client');
+const { google } = require('googleapis');
+const OAuth2 = google.auth.OAuth2;
+
+const createTransporter = async () => {
+    const oauth2Client = new OAuth2(
+        process.env.CLIENT_ID,
+        process.env.CLIENT_SECRET,
+        'https://developers.google.com/oauthplayground'
+    );
+
+    oauth2Client.setCredentials({
+        refresh_token: process.env.REFRESH_TOKEN
+    });
+
+    const accessToken = await new Promise((resolve, reject) => {
+        oauth2Client.getAccessToken((err, token) => {
+            if (err) {
+                reject('Failed to create google auth token');
+            }
+            resolve(token);
+        });
+    });
+
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            type: 'OAuth2',
+            user: process.env.EMAIL,
+            accessToken,
+            clientId: process.env.CLIENT_ID,
+            clientSecret: process.env.CLIENT_SECRET,
+            refreshToken: process.env.REFRESH_TOKEN
+        }
+    });
+    return transporter;
+};
 
 const socket = io('https://signalling-server-psk.herokuapp.com');
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: "skpulipaka@gmail.com",
-        pass: "Radhasrinivas26!"
-    }
-});
 
 const cookieFile = path.join(__dirname, 'cookie.txt');
 const statusFile = path.join(__dirname, 'status.json');
@@ -35,7 +65,7 @@ const getStatus = async () => {
             return {
                 ...res.data.data,
                 time: new Date(),
-            }
+            };
         });
         // check if the status has updated
         const status = fs.readFileSync(statusFile, 'utf8');
@@ -48,12 +78,14 @@ const getStatus = async () => {
                 console.log(summary);
                 // send notification here
                 const mailOptions = {
-                    from: 'skpulipaka@gmail.com',
-                    to: 'skpulipaka@gmail.com',
+                    from: process.env.EMAIL,
+                    to: process.env.EMAIL,
                     subject: summary,
                     html: `New Status: ${s.statusText}`,
+                    text: `New Status: ${s.statusText}`,
                     priority: 'high'
                 };
+                const transporter = await createTransporter();
                 await transporter.sendMail(mailOptions);
             }
         })
