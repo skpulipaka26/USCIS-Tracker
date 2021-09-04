@@ -81,8 +81,8 @@ const getStatus = async () => {
                     from: process.env.EMAIL,
                     to: process.env.EMAIL,
                     subject: summary,
-                    html: `New Status: ${s.statusText}`,
-                    text: `New Status: ${s.statusText}`,
+                    html: `New Status: ${newStatusObj.statusText}`,
+                    text: `New Status: ${newStatusObj.statusText}`,
                     priority: 'high'
                 };
                 const transporter = await createTransporter();
